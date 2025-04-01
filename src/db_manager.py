@@ -1,9 +1,13 @@
+from typing import Any
+
 import psycopg2
+
 
 class DBManager:
     """
     Класс для управления базой данных PostgreSQL, содержащей информацию о компаниях и вакансиях.
     """
+
     def __init__(self, db_name: str, db_config: dict):
         """
         Конструктор класса DBManager.
@@ -15,14 +19,14 @@ class DBManager:
         self.db_name = db_name
         self.db_config = db_config
 
-    def create_database(self):
+    def create_database(self) -> None:
         """
         Создает базу данных, если она не существует.
         """
         conn = None  # Явное объявление conn
         try:
             # Подключение к PostgreSQL для создания базы данных. Используем 'template1' как базу по умолчанию.
-            conn = psycopg2.connect(dbname='template1', **self.db_config)
+            conn = psycopg2.connect(dbname="template1", **self.db_config)
             conn.autocommit = True  # Включаем autocommit, чтобы изменения применялись немедленно
 
             cur = conn.cursor()
@@ -43,7 +47,7 @@ class DBManager:
             if conn:
                 conn.close()  # Закрываем соединение
 
-    def create_tables(self):
+    def create_tables(self) -> None:
         """
         Создает таблицы employers и vacancies в базе данных, если они не существуют.
         """
@@ -54,15 +58,18 @@ class DBManager:
             cur = conn.cursor()
 
             # SQL-запросы для создания таблиц
-            cur.execute("""
+            cur.execute(
+                """
                 CREATE TABLE IF NOT EXISTS employers (
                     employer_id SERIAL PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
                     url VARCHAR(255)
                 )
-            """)
+            """
+            )
 
-            cur.execute("""
+            cur.execute(
+                """
                 CREATE TABLE IF NOT EXISTS vacancies (
                     vacancy_id SERIAL PRIMARY KEY,
                     employer_id INT REFERENCES employers(employer_id),
@@ -72,7 +79,8 @@ class DBManager:
                     url VARCHAR(255),
                     description TEXT
                 )
-            """)
+            """
+            )
 
             conn.commit()
             print("Таблицы 'employers' и 'vacancies' успешно созданы (если их не было).")
@@ -84,7 +92,7 @@ class DBManager:
                 cur.close()  # Закрываем курсор
                 conn.close()  # Закрываем соединение
 
-    def save_companies_to_db(self, companies: list):
+    def save_companies_to_db(self, companies: list) -> None:
         """
         Сохраняет данные о компаниях в таблицу employers.
 
@@ -98,13 +106,16 @@ class DBManager:
 
             for company in companies:
                 try:
-                    cur.execute("""
+                    cur.execute(
+                        """
                         INSERT INTO employers (employer_id, name, url)
                         VALUES (%s, %s, %s)
                         ON CONFLICT (employer_id) DO NOTHING
-                    """, (company['id'], company['name'], company['url']))
+                    """,
+                        (company["id"], company["name"], company["url"]),
+                    )
                 except psycopg2.Error as e:
-                     print(f"Ошибка при вставке компании {company['name']}: {e}")
+                    print(f"Ошибка при вставке компании {company['name']}: {e}")
 
             conn.commit()
             print("Данные о компаниях успешно сохранены в базу данных.")
@@ -114,9 +125,9 @@ class DBManager:
         finally:
             if conn:
                 cur.close()  # Закрываем курсор
-                conn.close() # Закрываем соединение
+                conn.close()  # Закрываем соединение
 
-    def save_vacancies_to_db(self, vacancies: list, employer_id: int):
+    def save_vacancies_to_db(self, vacancies: list, employer_id: int) -> None:
         """
         Сохраняет данные о вакансиях в таблицу vacancies.
 
@@ -131,10 +142,20 @@ class DBManager:
 
             for vacancy in vacancies:
                 try:
-                    cur.execute("""
+                    cur.execute(
+                        """
                         INSERT INTO vacancies (employer_id, name, salary_from, salary_to, url, description)
                         VALUES (%s, %s, %s, %s, %s, %s)
-                    """, (employer_id, vacancy['name'], vacancy['salary_from'], vacancy['salary_to'], vacancy['url'], vacancy['description']))
+                    """,
+                        (
+                            employer_id,
+                            vacancy["name"],
+                            vacancy["salary_from"],
+                            vacancy["salary_to"],
+                            vacancy["url"],
+                            vacancy["description"],
+                        ),
+                    )
                 except psycopg2.Error as e:
                     print(f"Ошибка при вставке вакансии {vacancy['name']}: {e}")
 
@@ -160,13 +181,15 @@ class DBManager:
             conn = psycopg2.connect(dbname=self.db_name, **self.db_config)
             cur = conn.cursor()
 
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT employers.name, COUNT(vacancies.vacancy_id)
                 FROM employers
                 LEFT JOIN vacancies ON employers.employer_id = vacancies.employer_id
                 GROUP BY employers.name
                 ORDER BY employers.name
-            """)
+            """
+            )
 
             results = cur.fetchall()
             return {company: count for company, count in results}
@@ -179,7 +202,7 @@ class DBManager:
                 cur.close()
                 conn.close()
 
-    def get_all_vacancies(self) -> list:
+    def get_all_vacancies(self) -> list[Any]:
         """
         Получает список всех вакансий с указанием названия компании, названия вакансии,
         зарплаты и ссылки на вакансию.
@@ -192,13 +215,15 @@ class DBManager:
             conn = psycopg2.connect(dbname=self.db_name, **self.db_config)
             cur = conn.cursor()
 
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT employers.name, vacancies.name, vacancies.salary_from, vacancies.url
                 FROM vacancies
                 JOIN employers ON vacancies.employer_id = employers.employer_id
-            """)
+            """
+            )
 
-            return cur.fetchall()
+            return cur.fetchall()  # type: ignore
 
         except psycopg2.Error as e:
             print(f"Ошибка при выполнении запроса: {e}")
@@ -220,11 +245,13 @@ class DBManager:
             conn = psycopg2.connect(dbname=self.db_name, **self.db_config)
             cur = conn.cursor()
 
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT AVG(salary_from)
                 FROM vacancies
                 WHERE salary_from IS NOT NULL
-            """)
+            """
+            )
 
             result = cur.fetchone()
             return result[0] if result[0] is not None else 0.0
@@ -237,7 +264,7 @@ class DBManager:
                 cur.close()
                 conn.close()
 
-    def get_vacancies_with_higher_salary(self) -> list:
+    def get_vacancies_with_higher_salary(self) -> list[Any]:
         """
         Получает список всех вакансий, у которых зарплата выше средней по всем вакансиям.
 
@@ -249,14 +276,16 @@ class DBManager:
             conn = psycopg2.connect(dbname=self.db_name, **self.db_config)
             cur = conn.cursor()
 
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT employers.name, vacancies.name, vacancies.salary_from, vacancies.url
                 FROM vacancies
                 JOIN employers ON vacancies.employer_id = employers.employer_id
                 WHERE vacancies.salary_from > (SELECT AVG(salary_from) FROM vacancies WHERE salary_from IS NOT NULL)
-            """)
+            """
+            )
 
-            return cur.fetchall()
+            return cur.fetchall()  # type: ignore
 
         except psycopg2.Error as e:
             print(f"Ошибка при выполнении запроса: {e}")
@@ -266,7 +295,7 @@ class DBManager:
                 cur.close()
                 conn.close()
 
-    def get_vacancies_with_keyword(self, keyword: str) -> list:
+    def get_vacancies_with_keyword(self, keyword: str) -> list[Any]:
         """
         Получает список всех вакансий, в названии которых содержатся переданные в метод слова.
 
@@ -281,14 +310,17 @@ class DBManager:
             conn = psycopg2.connect(dbname=self.db_name, **self.db_config)
             cur = conn.cursor()
 
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT employers.name, vacancies.name, vacancies.salary_from, vacancies.url
                 FROM vacancies
                 JOIN employers ON vacancies.employer_id = employers.employer_id
                 WHERE vacancies.name LIKE %s
-            """, ('%' + keyword + '%',))
+            """,
+                ("%" + keyword + "%",),
+            )
 
-            return cur.fetchall()
+            return cur.fetchall()  # type: ignore
 
         except psycopg2.Error as e:
             print(f"Ошибка при выполнении запроса: {e}")

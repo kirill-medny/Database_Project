@@ -1,7 +1,9 @@
 import json
 import os
+from typing import Dict, List, Union
 
-def save_companies_to_file(companies: list, filename: str):
+
+def save_companies_to_file(companies: list, filename: str) -> None:
     """
     Сохраняет список компаний в файл в формате JSON.
 
@@ -13,13 +15,14 @@ def save_companies_to_file(companies: list, filename: str):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
 
     try:
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(companies, f, ensure_ascii=False, indent=4)
         print(f"Данные о компаниях успешно сохранены в файл '{filename}'.")
     except IOError as e:
         print(f"Ошибка при записи в файл: {e}")
 
-def load_companies_from_file(filename: str) -> list:
+
+def load_companies_from_file(filename: str) -> List[Dict[str, Union[str, int, bool]]]:
     """
     Загружает список компаний из файла в формате JSON.
 
@@ -30,8 +33,8 @@ def load_companies_from_file(filename: str) -> list:
         list: Список словарей с информацией о компаниях.
     """
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            return json.load(f)
+        with open(filename, "r", encoding="utf-8") as f:
+            return json.load(f)  # type: ignore
     except FileNotFoundError:
         print(f"Файл '{filename}' не найден.")
         return []
@@ -41,4 +44,3 @@ def load_companies_from_file(filename: str) -> list:
     except IOError as e:
         print(f"Ошибка при чтении файла: {e}")
         return []
-
