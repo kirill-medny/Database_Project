@@ -1,7 +1,6 @@
-import os
 from src.db_manager import DBManager
 from src.api_client import HeadHunterAPI
-from src.utils import save_companies_to_file, load_companies_from_file
+from src.utils import save_companies_to_file
 from config import config
 
 def main():
@@ -18,23 +17,19 @@ def main():
     db_manager.create_tables() # Создать таблицы employers и vacancies, если их не существует
 
     # 2. Получение данных о компаниях и вакансиях (из файла или API)
-    companies_file = "companies.json" # Файл для хранения информации о компаниях
+    companies_file = "data/companies.json" # Файл для хранения информации о компаниях
 
-    if os.path.exists(companies_file): # Если файл с компаниями существует
-        companies = load_companies_from_file(companies_file) # Загрузить список компаний из файла
-        print("Компании загружены из файла.")
-    else:
-        hh_api = HeadHunterAPI() # Создаем экземпляр HeadHunterAPI для работы с API hh.ru
-        #Список ID интересующих компаний.  Можно менять этот список.
-        company_ids = [1740, 80, 78638, 3529, 4181, 1455, 2748, 208707, 15478, 3388]#
-        companies = [] # Инициализация списка компаний
-        for company_id in company_ids:
-            company = hh_api.get_company(company_id) # Получаем информацию о компании по ID
-            if company:
-                companies.append(company) # Добавляем компанию в список
+    hh_api = HeadHunterAPI() # Создаем экземпляр HeadHunterAPI для работы с API hh.ru
+    #Список ID интересующих компаний.  Можно менять этот список.
+    company_ids = [1740, 80, 78638, 3529, 4181, 1455, 2748, 208707, 15478, 3388]
+    companies = [] # Инициализация списка компаний
+    for company_id in company_ids:
+        company = hh_api.get_company(company_id) # Получаем информацию о компании по ID
+        if company:
+            companies.append(company) # Добавляем компанию в список
 
-        save_companies_to_file(companies, companies_file) # Сохранить список компаний в файл
-        print("Компании загружены из API и сохранены в файл.")
+    save_companies_to_file(companies, companies_file) # Сохранить список компаний в файл
+    print("Компании загружены из API и сохранены в файл.")
 
     # 3. Заполнение базы данных
     db_manager.save_companies_to_db(companies) # Сохраняем данные о компаниях в БД

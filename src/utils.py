@@ -1,4 +1,5 @@
 import json
+import os
 
 def save_companies_to_file(companies: list, filename: str):
     """
@@ -8,6 +9,9 @@ def save_companies_to_file(companies: list, filename: str):
         companies (list): Список словарей с информацией о компаниях.
         filename (str): Имя файла для сохранения данных.
     """
+    # Создаем директорию data, если ее не существует
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
     try:
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(companies, f, ensure_ascii=False, indent=4)
@@ -37,3 +41,4 @@ def load_companies_from_file(filename: str) -> list:
     except IOError as e:
         print(f"Ошибка при чтении файла: {e}")
         return []
+
