@@ -1,5 +1,5 @@
-from typing import Any, Dict, List, Optional, Union
-from unittest.mock import MagicMock, patch
+from typing import Dict, List, Optional, Union
+from unittest.mock import MagicMock
 
 import pytest
 import requests

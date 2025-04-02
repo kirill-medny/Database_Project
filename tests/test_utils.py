@@ -1,9 +1,7 @@
 import json
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 from unittest.mock import patch
-
-import pytest
 
 from src.utils import load_companies_from_file, save_companies_to_file
 
