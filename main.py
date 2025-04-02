@@ -48,7 +48,7 @@ def main() -> None:
         print("5 - Получить список вакансий, содержащих ключевое слово")
         print("0 - Выход")
 
-        choice = input("Ваш выбор: ")
+        choice = input("\nВаш выбор: ")
 
         if choice == "1":
             companies_vacancies = db_manager.get_companies_and_vacancies_count()

@@ -18,7 +18,8 @@ def save_companies_to_file(companies: list, filename: str) -> None:
         with open(filename, "w", encoding="utf-8") as f:
             json.dump(companies, f, ensure_ascii=False, indent=4)
         print(f"Данные о компаниях успешно сохранены в файл '{filename}'.")
-    except IOError as e:
+    # except IOError as e:
+    except OSError as e:
         print(f"Ошибка при записи в файл: {e}")
 
 
