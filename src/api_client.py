@@ -50,7 +50,13 @@ class HeadHunterAPI:
 
         while not all_pages_loaded:
             try:
-                params = {"employer_id": company_id, "page": page, "per_page": per_page, "area": area}
+                params = {
+                    "employer_id": company_id,
+                    "page": page,
+                    "per_page": per_page,
+                    "area": area,
+                    "only_with_salary": True,
+                }
                 response = requests.get(f"{self.base_url}vacancies", headers=self.user_agent, params=params)
                 response.raise_for_status()  # Проверка на ошибки HTTP
 
@@ -62,13 +68,11 @@ class HeadHunterAPI:
                     continue
 
                 for item in items:
-                    salary_from = item.get("salary", {}).get("from") if item.get("salary") else None
-                    salary_to = item.get("salary", {}).get("to") if item.get("salary") else None
                     vacancies.append(
                         {
                             "name": item["name"],
-                            "salary_from": salary_from,
-                            "salary_to": salary_to,
+                            "salary_from": item["salary"]["from"],
+                            "salary_to": item["salary"]["to"],
                             "url": item["alternate_url"],
                             "description": item.get("snippet", {}).get("responsibility", ""),
                         }

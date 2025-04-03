@@ -116,7 +116,7 @@ def test_get_vacancies(
     # Мокируем несколько ответов, чтобы имитировать пагинацию
     mock_response = MagicMock()
     mock_response.raise_for_status.return_value = None
-    mock_hh_api.session.get.side_effect = [                            # type:ignore
+    mock_hh_api.session.get.side_effect = [  # type:ignore
         MagicMock(json=lambda: response) for response in mock_responses
     ]
 

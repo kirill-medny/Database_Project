@@ -1,27 +1,27 @@
+from contextlib import suppress
+
 from config import config
 from src.api_client import HeadHunterAPI
 from src.db_manager import DBManager
 from src.utils import save_companies_to_file
 
 
-def main() -> None:
+def create_tables(db_manager: DBManager) -> None:
     """
-    Основная функция для взаимодействия с пользователем.
+    Создает базу данных и таблицы, если они не существуют.
     """
-    db_config = config()  # Загружаем параметры для подключения к БД из файла config.py
+    db_manager.create_database()
+    db_manager.create_tables()
 
-    db_name = "hh_database"  # Имя базы данных.
-    db_manager = DBManager(db_name, db_config)  # Создаем экземпляр DBManager
 
-    # 1. Создание базы данных и таблиц (если необходимо)
-    db_manager.create_database()  # Создать БД, если ее не существует
-    db_manager.create_tables()  # Создать таблицы employers и vacancies, если их не существует
-
-    # 2. Получение данных о компаниях и вакансиях (из файла или API)
+def load_data(db_manager: DBManager) -> None:
+    """
+    Загружает данные о компаниях и вакансиях из API и сохраняет их в базу данных.
+    """
     companies_file = "data/companies.json"  # Файл для хранения информации о компаниях
 
     hh_api = HeadHunterAPI()  # Создаем экземпляр HeadHunterAPI для работы с API hh.ru
-    # Список ID интересующих компаний.  Можно менять этот список.
+    # Список ID интересующих компаний. Можно менять этот список.
     company_ids = [1740, 80, 78638, 3529, 4181, 1455, 2748, 208707, 15478, 3388]
     companies = []  # Инициализация списка компаний
     for company_id in company_ids:
@@ -32,13 +32,17 @@ def main() -> None:
     save_companies_to_file(companies, companies_file)  # Сохранить список компаний в файл
     print("Компании загружены из API и сохранены в файл.")
 
-    # 3. Заполнение базы данных
+    # Заполнение базы данных
     db_manager.save_companies_to_db(companies)  # Сохраняем данные о компаниях в БД
     for company in companies:
-        vacancies = HeadHunterAPI().get_vacancies(company["id"])  # Получаем вакансии компании через API
+        vacancies = hh_api.get_vacancies(company["id"])  # Получаем вакансии компании через API
         db_manager.save_vacancies_to_db(vacancies, company["id"])  # Сохраняем вакансии в БД
 
-    # 4. Взаимодействие с пользователем
+
+def run_user_interaction(db_manager: DBManager) -> None:
+    """
+    Взаимодействие с пользователем для выполнения различных действий.
+    """
     while True:
         print("\nВыберите действие:")
         print("1 - Получить список компаний и количество вакансий у каждой компании")
@@ -91,13 +95,28 @@ def main() -> None:
                         f"Компания: {vacancy[0]}, Вакансия: {vacancy[1]}, Зарплата: {vacancy[2]}, Ссылка: {vacancy[3]}"
                     )
             else:
-                print(f"Нет вакансий, содержащих ключевое слово '{keyword}'.")
+                print(f"Нет вакансий, содержащих ключевое слово {keyword!r}.")
 
         elif choice == "0":
             print("Выход из программы.")
             break
         else:
             print("Неверный выбор. Попробуйте еще раз.")
+
+
+def main() -> None:
+    """
+    Основная функция для взаимодействия с пользователем.
+    """
+    db_config = config()  # Загружаем параметры для подключения к БД из файла config.py
+    db_name = "hh_database"
+    db_manager = DBManager(db_name, db_config)  # Создаем экземпляр DBManager
+
+    create_tables(db_manager)
+    load_data(db_manager)
+
+    with suppress(KeyboardInterrupt):
+        run_user_interaction(db_manager)
 
 
 if __name__ == "__main__":

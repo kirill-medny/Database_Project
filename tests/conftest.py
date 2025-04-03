@@ -2,12 +2,9 @@ from typing import Any, Dict, Generator, List, Optional, Tuple, Union
 from unittest.mock import MagicMock, patch
 
 import pytest
-from dotenv import load_dotenv
 
 from src.api_client import HeadHunterAPI
 from src.db_manager import DBManager
-
-load_dotenv()
 
 
 # Фикстуры для api_client
